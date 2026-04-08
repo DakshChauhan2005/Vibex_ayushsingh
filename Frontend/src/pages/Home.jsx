@@ -12,15 +12,21 @@ import {
   Star,
   Wrench,
 } from "lucide-react";
-import { Link, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
+import { useSelector } from "react-redux";
 import CategoryCard from "../components/CategoryCard";
 import api from "../services/api";
-import LoadingSpinner from "../components/LoadingSpinner";
 import Button from "../components/ui/Button";
 import Card from "../components/ui/Card";
 import SectionWrapper from "../components/ui/SectionWrapper";
 
 const categoryImages = {
+  plumber:
+    "https://images.unsplash.com/photo-1585704032915-c3400ca199e7?auto=format&fit=crop&w=900&q=80",
+  electrical:
+    "https://images.unsplash.com/photo-1621905252507-b35492cc74b4?auto=format&fit=crop&w=900&q=80",
+  tutoring:
+    "https://images.unsplash.com/photo-1509062522246-3755977927d7?auto=format&fit=crop&w=900&q=80",
   Plumbing:
     "https://images.unsplash.com/photo-1585704032915-c3400ca199e7?auto=format&fit=crop&w=900&q=80",
   Electrical:
@@ -29,51 +35,92 @@ const categoryImages = {
     "https://images.unsplash.com/photo-1509062522246-3755977927d7?auto=format&fit=crop&w=900&q=80",
 };
 
-const categories = [
+const fallbackCategories = [
   { title: "Plumbing", key: "plumber" },
   { title: "Electrical", key: "electrical" },
   { title: "Tutoring", key: "tutoring" },
 ];
 
+const fallbackCounts = {
+  Plumbing: 0,
+  Electrical: 0,
+  Tutoring: 0,
+};
+
+const fallbackCategoryImage =
+  "https://images.unsplash.com/photo-1454165804606-c3d57bc86b40?auto=format&fit=crop&w=900&q=80";
+
+function toTitleCase(value) {
+  return value
+    .replace(/[-_]+/g, " ")
+    .trim()
+    .replace(/\w\S*/g, (txt) => txt.charAt(0).toUpperCase() + txt.slice(1).toLowerCase());
+}
+
 export default function Home() {
   const navigate = useNavigate();
-  const [counts, setCounts] = useState({
-    Plumbing: 0,
-    Electrical: 0,
-    Tutoring: 0,
-  });
+  const { token } = useSelector((state) => state.auth);
+  const [categories, setCategories] = useState(fallbackCategories);
+  const [counts, setCounts] = useState(fallbackCounts);
+  const [totalProviders, setTotalProviders] = useState(0);
+  const [totalServices, setTotalServices] = useState(0);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const loadCategoryCounts = async () => {
+    const loadHomeStats = async () => {
       try {
-        const responses = await Promise.all(
-          categories.map((category) =>
-            api.get("/services", {
-              params: {
-                category: category.key,
-                page: 1,
-                limit: 100,
-              },
-            })
-          )
-        );
+        const [servicesResponse, providersResponse] = await Promise.all([
+          api.get("/services", { params: { page: 1, limit: 500 } }),
+          api.get("/users/providers"),
+        ]);
 
-        const mapped = {};
-        responses.forEach((response, index) => {
-          const category = categories[index];
-          const services = response.data?.data?.services || [];
-          const providerSet = new Set(services.map((service) => service.provider?._id).filter(Boolean));
-          mapped[category.title] = providerSet.size;
+        const services = servicesResponse.data?.data?.services || [];
+        const servicesTotal = Number(servicesResponse.data?.meta?.total || services.length || 0);
+        const providers = providersResponse.data?.data?.providers || [];
+
+        const categoryMap = new Map();
+
+        services.forEach((service) => {
+          const rawCategory = String(service.category || "").trim();
+          if (!rawCategory) return;
+
+          const key = rawCategory.toLowerCase();
+          const title = toTitleCase(rawCategory);
+          const existing = categoryMap.get(key) || { key: rawCategory, title, providerIds: new Set() };
+
+          if (service.provider?._id) {
+            existing.providerIds.add(service.provider._id);
+          }
+
+          categoryMap.set(key, existing);
         });
 
-        setCounts((prev) => ({ ...prev, ...mapped }));
+        const derivedCategories = Array.from(categoryMap.values())
+          .map((entry) => ({
+            key: entry.key,
+            title: entry.title,
+            count: entry.providerIds.size,
+          }))
+          .sort((a, b) => b.count - a.count);
+
+        if (derivedCategories.length > 0) {
+          setCategories(derivedCategories.slice(0, 6).map(({ key, title }) => ({ key, title })));
+
+          const dynamicCounts = {};
+          derivedCategories.forEach((category) => {
+            dynamicCounts[category.title] = category.count;
+          });
+          setCounts(dynamicCounts);
+        }
+
+        setTotalProviders(providers.length);
+        setTotalServices(servicesTotal);
       } finally {
         setLoading(false);
       }
     };
 
-    loadCategoryCounts();
+    loadHomeStats();
   }, []);
 
   const whyChooseUs = useMemo(
@@ -126,10 +173,10 @@ export default function Home() {
     { title: "Get work done", text: "Track status updates and complete your service with confidence.", icon: Wrench },
   ];
 
-  const totalProviders = useMemo(
-    () => Object.values(counts).reduce((acc, value) => acc + Number(value || 0), 0),
-    [counts]
-  );
+  const displayedProviders = useMemo(() => {
+    if (totalProviders > 0) return totalProviders;
+    return Object.values(counts).reduce((acc, value) => acc + Number(value || 0), 0);
+  }, [counts, totalProviders]);
 
   return (
     <div>
@@ -161,7 +208,7 @@ export default function Home() {
                 <CheckCircle2 className="mr-1 inline h-3.5 w-3.5" /> Verified Providers
               </span>
               <span className="rounded-full border border-brand-200 bg-white px-3 py-1 text-xs font-bold text-brand-800">
-                <CheckCircle2 className="mr-1 inline h-3.5 w-3.5" /> 100+ bookings completed
+                <CheckCircle2 className="mr-1 inline h-3.5 w-3.5" /> {loading ? "-" : `${totalServices}+`} services listed
               </span>
             </div>
 
@@ -169,15 +216,21 @@ export default function Home() {
               <Button as="a" href="/services" className="px-7 py-3.5 text-base">
                 Browse Services <ArrowRight className="h-5 w-5" />
               </Button>
-              <Button as="a" href="/register" variant="secondary" className="px-7 py-3.5 text-base">
-                Become a Provider
-              </Button>
+              {token ? (
+                <Button as="a" href="/dashboard" variant="secondary" className="px-7 py-3.5 text-base">
+                  Go to Dashboard
+                </Button>
+              ) : (
+                <Button as="a" href="/register" variant="secondary" className="px-7 py-3.5 text-base">
+                  Become a Provider
+                </Button>
+              )}
             </div>
 
             <div className="mt-8 grid max-w-xl grid-cols-3 gap-3">
               <article className="rounded-2xl border border-brand-100 bg-white p-3 shadow-soft">
                 <p className="text-xs font-bold uppercase tracking-wide text-brand-600">Providers</p>
-                <p className="mt-1 text-2xl font-black text-brand-950">{loading ? "-" : totalProviders}</p>
+                <p className="mt-1 text-2xl font-black text-brand-950">{loading ? "-" : displayedProviders}</p>
               </article>
               <article className="rounded-2xl border border-brand-100 bg-white p-3 shadow-soft">
                 <p className="text-xs font-bold uppercase tracking-wide text-brand-600">Categories</p>
@@ -222,8 +275,12 @@ export default function Home() {
               <CategoryCard
                 key={category.title}
                 title={category.title}
-                image={categoryImages[category.title]}
-                count={counts[category.title]}
+                image={
+                  categoryImages[category.key?.toLowerCase()] ||
+                  categoryImages[category.title] ||
+                  fallbackCategoryImage
+                }
+                count={counts[category.title] || 0}
                 onClick={() => navigate(`/services?category=${category.key}`)}
               />
             ))}

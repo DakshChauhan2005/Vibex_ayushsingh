@@ -1,7 +1,7 @@
 import { Link, NavLink, useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import { Moon, Sun } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { logout } from "../store/authSlice";
 
 export default function Navbar({ theme = "light", onToggleTheme }) {
@@ -10,9 +10,25 @@ export default function Navbar({ theme = "light", onToggleTheme }) {
   const user = useSelector((state) => state.auth.user);
 
   const [scrolled, setScrolled] = useState(false);
+  const [isVisible, setIsVisible] = useState(true);
+  const lastScrollYRef = useRef(0);
 
   useEffect(() => {
-    const onScroll = () => setScrolled(window.scrollY > 10);
+    const onScroll = () => {
+      const currentScrollY = window.scrollY;
+      setScrolled(currentScrollY > 10);
+
+      if (currentScrollY < 24) {
+        setIsVisible(true);
+      } else if (currentScrollY > lastScrollYRef.current && currentScrollY > 80) {
+        setIsVisible(false);
+      } else {
+        setIsVisible(true);
+      }
+
+      lastScrollYRef.current = currentScrollY;
+    };
+
     window.addEventListener("scroll", onScroll, { passive: true });
     return () => window.removeEventListener("scroll", onScroll);
   }, []);
@@ -36,19 +52,19 @@ export default function Navbar({ theme = "light", onToggleTheme }) {
       className={`sticky top-0 z-30 border-b backdrop-blur ${
         isDark
           ? scrolled
-            ? "border-brand-300 bg-[#0f1714]/92 shadow-soft"
-            : "border-brand-200 bg-[#111a17]/88"
+            ? "border-brand-300 bg-transparent shadow-soft"
+            : "border-brand-200 bg-transparent"
           : scrolled
-            ? "border-brand-200 bg-white/92 shadow-soft"
-            : "border-brand-100 bg-white/95"
-      }`}
+            ? "border-brand-200 bg-gradient-to-r from-[#f6f3ef]/95 via-[#edf2ee]/95 to-[#f6f3ef]/95 shadow-soft"
+            : "border-brand-100 bg-gradient-to-r from-[#f8f4ef]/95 via-[#eef3ef]/95 to-[#f8f4ef]/95"
+      } ${isVisible ? "translate-y-0" : "-translate-y-full"} transition-transform duration-300`}
     >
-      <div className="mx-auto flex h-20 w-full max-w-6xl items-center justify-between px-4 md:px-6">
+      <div className="mx-auto flex h-16 w-full max-w-6xl items-center justify-between px-4 md:px-6">
         <Link to="/" className="flex items-center gap-3">
-          <span className="grid h-11 w-11 place-items-center rounded-full bg-brand-600 text-lg font-bold text-white">
+          <span className="grid h-9 w-9 place-items-center rounded-full bg-brand-600 text-sm font-bold text-white">
             O
           </span>
-          <span className={`type-brand text-4xl font-bold leading-none ${isDark ? "text-brand-900" : "text-brand-950"}`}>
+          <span className={`type-brand text-3xl font-bold leading-none ${isDark ? "text-brand-900" : "text-brand-950"}`}>
             OpenCare
           </span>
         </Link>
@@ -75,7 +91,7 @@ export default function Navbar({ theme = "light", onToggleTheme }) {
             <button
               type="button"
               onClick={onToggleTheme}
-              className="inline-flex items-center gap-2 rounded-full border border-brand-200 bg-brand-50 px-4 py-2 text-sm font-bold text-brand-900 transition hover:bg-brand-100"
+              className="inline-flex items-center gap-2 rounded-full border border-brand-200 bg-brand-50 px-3.5 py-1.5 text-sm font-bold text-brand-900 transition hover:bg-brand-100"
               aria-label="Toggle theme"
             >
               {theme === "dark" ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
@@ -85,7 +101,7 @@ export default function Navbar({ theme = "light", onToggleTheme }) {
             <button
               type="button"
               onClick={onToggleTheme}
-              className="inline-flex items-center gap-2 rounded-full border border-brand-200 bg-brand-50 px-4 py-2 text-sm font-bold text-brand-900 transition hover:bg-brand-100"
+              className="inline-flex items-center gap-2 rounded-full border border-brand-200 bg-brand-50 px-3.5 py-1.5 text-sm font-bold text-brand-900 transition hover:bg-brand-100"
               aria-label="Toggle theme"
             >
               {theme === "dark" ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
@@ -96,14 +112,14 @@ export default function Navbar({ theme = "light", onToggleTheme }) {
             <button
               type="button"
               onClick={handleLogout}
-              className="rounded-full bg-brand-600 px-7 py-3 text-base font-bold text-white transition hover:bg-brand-700"
+              className="rounded-full bg-brand-600 px-6 py-2.5 text-sm font-bold text-white transition hover:bg-brand-700"
             >
               Logout
             </button>
           ) : (
             <Link
               to="/register"
-              className="rounded-full bg-brand-600 px-7 py-3 text-base font-bold text-white transition hover:bg-brand-700"
+              className="rounded-full bg-brand-600 px-6 py-2.5 text-sm font-bold text-white transition hover:bg-brand-700"
             >
               Get Started
             </Link>

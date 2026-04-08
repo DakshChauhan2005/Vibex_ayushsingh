@@ -17,6 +17,7 @@ export default function Services() {
   const [searchParams] = useSearchParams();
   const { items, filters, meta, loading, error } = useSelector((state) => state.services);
   const [providers, setProviders] = useState([]);
+  const [viewMode, setViewMode] = useState(() => localStorage.getItem("oc_services_view") || "list");
 
   useEffect(() => {
     const category = searchParams.get("category");
@@ -46,6 +47,11 @@ export default function Services() {
 
   const handleFilterChange = (key, value) => {
     dispatch(setServiceFilter({ [key]: value, page: 1 }));
+  };
+
+  const handleViewModeChange = (mode) => {
+    setViewMode(mode);
+    localStorage.setItem("oc_services_view", mode);
   };
 
   const totalPages = meta?.totalPages || 1;
@@ -131,10 +137,31 @@ export default function Services() {
         <button
           type="button"
           onClick={() => dispatch(resetServiceFilters())}
-          className="rounded-full bg-orange-600 px-5 py-2 text-sm font-bold text-white"
+          className="rounded-full bg-brand-600 px-5 py-2 text-sm font-bold text-white hover:bg-brand-700"
         >
           Reset
         </button>
+
+        <div className="ml-auto inline-flex rounded-full border border-brand-200 bg-brand-50 p-1">
+          <button
+            type="button"
+            onClick={() => handleViewModeChange("grid")}
+            className={`rounded-full px-4 py-1.5 text-xs font-bold transition ${
+              viewMode === "grid" ? "bg-brand-600 text-white" : "text-brand-800 hover:bg-brand-100"
+            }`}
+          >
+            Grid
+          </button>
+          <button
+            type="button"
+            onClick={() => handleViewModeChange("list")}
+            className={`rounded-full px-4 py-1.5 text-xs font-bold transition ${
+              viewMode === "list" ? "bg-brand-600 text-white" : "text-brand-800 hover:bg-brand-100"
+            }`}
+          >
+            List
+          </button>
+        </div>
       </div>
 
       {loading ? <LoadingSpinner label="Loading services..." /> : null}
@@ -151,9 +178,9 @@ export default function Services() {
       ) : null}
 
       {!loading && !error && items.length > 0 ? (
-        <div className="grid gap-5 md:grid-cols-2 xl:grid-cols-3">
+        <div className={viewMode === "grid" ? "grid gap-5 md:grid-cols-2 xl:grid-cols-3" : "space-y-4"}>
           {items.map((service) => (
-            <ServiceCard key={service._id} service={service} />
+            <ServiceCard key={service._id} service={service} viewMode={viewMode} />
           ))}
         </div>
       ) : null}
