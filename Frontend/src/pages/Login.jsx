@@ -46,9 +46,9 @@ export default function Login() {
         <div className="mb-8 text-center">
           <div className="inline-flex items-center gap-3">
             <span className="grid h-10 w-10 place-items-center rounded-full bg-brand-600 font-bold text-white">
-              N
+              O
             </span>
-            <span className="text-3xl font-black text-brand-950">NeighbourConnect</span>
+            <span className="text-3xl font-black text-brand-950">OpenCare</span>
           </div>
           <h1 className="mt-5 text-5xl font-black text-brand-950">Welcome Back</h1>
           <p className="mt-2 text-lg text-brand-700">Login to your account</p>

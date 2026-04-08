@@ -29,6 +29,7 @@ export default function ServiceDetails() {
   const [bookingSubmitting, setBookingSubmitting] = useState(false);
   const [reviewSubmitting, setReviewSubmitting] = useState(false);
   const [deletingReviewId, setDeletingReviewId] = useState(null);
+  const [showProviderProfile, setShowProviderProfile] = useState(false);
 
   const minBookingDateTime = useMemo(() => {
     const now = new Date(Date.now() + 60 * 1000);
@@ -149,6 +150,13 @@ export default function ServiceDetails() {
           <div>
             <p className="text-xs font-bold uppercase tracking-wide text-brand-600">Provider</p>
             <p className="mt-1 text-base font-semibold">{selectedService.provider?.name || "Unknown"}</p>
+            <button
+              type="button"
+              onClick={() => setShowProviderProfile((prev) => !prev)}
+              className="mt-2 rounded-full border border-brand-200 px-3 py-1 text-xs font-bold text-brand-800"
+            >
+              {showProviderProfile ? "Hide Provider Profile" : "View Provider Profile"}
+            </button>
           </div>
           <div>
             <p className="text-xs font-bold uppercase tracking-wide text-brand-600">Rating</p>
@@ -157,6 +165,30 @@ export default function ServiceDetails() {
             </p>
           </div>
         </div>
+
+        {showProviderProfile ? (
+          <div className="mt-5 rounded-2xl border border-brand-100 bg-white p-5">
+            <h3 className="text-xl font-black text-brand-950">Provider Profile</h3>
+            <div className="mt-3 grid gap-2 text-sm text-brand-800 md:grid-cols-2">
+              <p>
+                <span className="font-bold text-brand-900">Name:</span>{" "}
+                {selectedService.provider?.name || "Not available"}
+              </p>
+              <p>
+                <span className="font-bold text-brand-900">Email:</span>{" "}
+                {selectedService.provider?.email || "Not available"}
+              </p>
+              <p>
+                <span className="font-bold text-brand-900">Location:</span>{" "}
+                {selectedService.provider?.location || "Not available"}
+              </p>
+              <p>
+                <span className="font-bold text-brand-900">Service Category:</span>{" "}
+                {selectedService.category}
+              </p>
+            </div>
+          </div>
+        ) : null}
 
         <div className="mt-7 rounded-2xl border border-brand-100 bg-[#f6f2ed] p-5">
           <h2 className="text-2xl font-black text-brand-950">Book Now</h2>

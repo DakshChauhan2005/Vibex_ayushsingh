@@ -4,9 +4,17 @@ import api, { getApiErrorMessage } from "../services/api";
 const persistedToken = localStorage.getItem("nc_token");
 const persistedUser = localStorage.getItem("nc_user");
 
+function normalizeUser(user) {
+  if (!user) return null;
+  return {
+    ...user,
+    id: user.id || user._id,
+  };
+}
+
 const initialState = {
   token: persistedToken || null,
-  user: persistedUser ? JSON.parse(persistedUser) : null,
+  user: persistedUser ? normalizeUser(JSON.parse(persistedUser)) : null,
   loading: false,
   error: null,
 };
@@ -95,7 +103,7 @@ const authSlice = createSlice({
       .addCase(registerUser.fulfilled, (state, action) => {
         state.loading = false;
         state.token = action.payload?.token || null;
-        state.user = action.payload?.user || null;
+        state.user = normalizeUser(action.payload?.user || null);
         if (state.token) {
           localStorage.setItem("nc_token", state.token);
         }
@@ -114,7 +122,7 @@ const authSlice = createSlice({
       .addCase(loginUser.fulfilled, (state, action) => {
         state.loading = false;
         state.token = action.payload?.token || null;
-        state.user = action.payload?.user || null;
+        state.user = normalizeUser(action.payload?.user || null);
         if (state.token) {
           localStorage.setItem("nc_token", state.token);
         }
@@ -127,9 +135,9 @@ const authSlice = createSlice({
         state.error = action.payload;
       })
       .addCase(fetchMe.fulfilled, (state, action) => {
-        state.user = action.payload;
+        state.user = normalizeUser(action.payload);
         if (action.payload) {
-          localStorage.setItem("nc_user", JSON.stringify(action.payload));
+          localStorage.setItem("nc_user", JSON.stringify(normalizeUser(action.payload)));
         }
       })
       .addCase(fetchMe.rejected, (state) => {
@@ -139,8 +147,8 @@ const authSlice = createSlice({
         localStorage.removeItem("nc_user");
       })
       .addCase(fetchUserProfile.fulfilled, (state, action) => {
-        state.user = action.payload;
-        localStorage.setItem("nc_user", JSON.stringify(action.payload));
+        state.user = normalizeUser(action.payload);
+        localStorage.setItem("nc_user", JSON.stringify(normalizeUser(action.payload)));
       })
       .addCase(updateUserProfile.pending, (state) => {
         state.loading = true;
@@ -148,8 +156,8 @@ const authSlice = createSlice({
       })
       .addCase(updateUserProfile.fulfilled, (state, action) => {
         state.loading = false;
-        state.user = action.payload;
-        localStorage.setItem("nc_user", JSON.stringify(action.payload));
+        state.user = normalizeUser(action.payload);
+        localStorage.setItem("nc_user", JSON.stringify(normalizeUser(action.payload)));
       })
       .addCase(updateUserProfile.rejected, (state, action) => {
         state.loading = false;
