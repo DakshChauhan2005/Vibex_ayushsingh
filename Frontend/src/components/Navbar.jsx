@@ -1,16 +1,18 @@
-import { Link, NavLink, useNavigate } from "react-router-dom";
+import { Link, NavLink, useLocation, useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
-import { Moon, Sun } from "lucide-react";
+import { Menu, Moon, Sun, X } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { logout } from "../store/authSlice";
 
 export default function Navbar({ theme = "light", onToggleTheme }) {
+  const location = useLocation();
   const navigate = useNavigate();
   const dispatch = useDispatch();
   const user = useSelector((state) => state.auth.user);
 
   const [scrolled, setScrolled] = useState(false);
   const [isVisible, setIsVisible] = useState(true);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const lastScrollYRef = useRef(0);
 
   useEffect(() => {
@@ -33,6 +35,10 @@ export default function Navbar({ theme = "light", onToggleTheme }) {
     return () => window.removeEventListener("scroll", onScroll);
   }, []);
 
+  useEffect(() => {
+    setMobileMenuOpen(false);
+  }, [location.pathname]);
+
   const navClass = ({ isActive }) =>
     `type-display relative text-base font-semibold transition ${
       isActive
@@ -44,7 +50,16 @@ export default function Navbar({ theme = "light", onToggleTheme }) {
 
   const handleLogout = () => {
     dispatch(logout());
+    setMobileMenuOpen(false);
     navigate("/login");
+  };
+
+  const handleMobileMenuToggle = () => {
+    setMobileMenuOpen((prev) => !prev);
+  };
+
+  const handleThemeToggle = () => {
+    onToggleTheme?.();
   };
 
   return (
@@ -64,7 +79,7 @@ export default function Navbar({ theme = "light", onToggleTheme }) {
           <span className="grid h-9 w-9 place-items-center rounded-full bg-brand-600 text-sm font-bold text-white">
             O
           </span>
-          <span className={`type-brand text-3xl font-bold leading-none ${isDark ? "text-brand-900" : "text-brand-950"}`}>
+          <span className={`type-brand text-2xl font-bold leading-none sm:text-3xl ${isDark ? "text-brand-900" : "text-brand-950"}`}>
             OpenCare
           </span>
         </Link>
@@ -90,7 +105,7 @@ export default function Navbar({ theme = "light", onToggleTheme }) {
           {user ? (
             <button
               type="button"
-              onClick={onToggleTheme}
+              onClick={handleThemeToggle}
               className="inline-flex items-center gap-2 rounded-full border border-brand-200 bg-brand-50 px-3.5 py-1.5 text-sm font-bold text-brand-900 transition hover:bg-brand-100"
               aria-label="Toggle theme"
             >
@@ -100,7 +115,7 @@ export default function Navbar({ theme = "light", onToggleTheme }) {
           ) : (
             <button
               type="button"
-              onClick={onToggleTheme}
+              onClick={handleThemeToggle}
               className="inline-flex items-center gap-2 rounded-full border border-brand-200 bg-brand-50 px-3.5 py-1.5 text-sm font-bold text-brand-900 transition hover:bg-brand-100"
               aria-label="Toggle theme"
             >
@@ -124,6 +139,73 @@ export default function Navbar({ theme = "light", onToggleTheme }) {
               Get Started
             </Link>
           )}
+        </nav>
+
+        <div className="flex items-center gap-2 md:hidden">
+          <button
+            type="button"
+            onClick={handleThemeToggle}
+            className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-brand-200 bg-brand-50 text-brand-900 transition hover:bg-brand-100"
+            aria-label="Toggle theme"
+          >
+            {theme === "dark" ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
+          </button>
+          <button
+            type="button"
+            onClick={handleMobileMenuToggle}
+            className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-brand-200 bg-brand-50 text-brand-900 transition hover:bg-brand-100"
+            aria-expanded={mobileMenuOpen}
+            aria-controls="mobile-nav-menu"
+            aria-label={mobileMenuOpen ? "Close navigation menu" : "Open navigation menu"}
+          >
+            {mobileMenuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+          </button>
+        </div>
+      </div>
+
+      <div
+        id="mobile-nav-menu"
+        className={`mx-auto w-full max-w-6xl px-4 pb-4 md:hidden ${
+          mobileMenuOpen ? "block" : "hidden"
+        }`}
+      >
+        <nav className="rounded-2xl border border-brand-100 bg-white/95 p-4 shadow-soft backdrop-blur">
+          <div className="flex flex-col gap-3">
+            <NavLink to="/services" className={navClass}>
+              Services
+            </NavLink>
+            {user ? (
+              <NavLink to="/dashboard" className={navClass}>
+                Dashboard
+              </NavLink>
+            ) : (
+              <NavLink to="/login" className={navClass}>
+                Login
+              </NavLink>
+            )}
+            {user ? (
+              <NavLink to="/profile" className={navClass}>
+                Profile
+              </NavLink>
+            ) : null}
+
+            {user ? (
+              <button
+                type="button"
+                onClick={handleLogout}
+                className="mt-1 rounded-full bg-brand-600 px-5 py-2.5 text-sm font-bold text-white transition hover:bg-brand-700"
+              >
+                Logout
+              </button>
+            ) : (
+              <Link
+                to="/register"
+                className="mt-1 rounded-full bg-brand-600 px-5 py-2.5 text-center text-sm font-bold text-white transition hover:bg-brand-700"
+              >
+                Get Started
+              </Link>
+            )}
+          </div>
         </nav>
       </div>
     </header>
