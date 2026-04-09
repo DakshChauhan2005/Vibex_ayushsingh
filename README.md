@@ -1,3 +1,59 @@
+
+## Kalpathon Hackathon Submission
+
+- Team Name : VibeX
+
+- Project Name : Neighbourhood Service Marketplace
+
+- Selected Track : Track 1 = Web Development
+
+- Selected Problem Statement (PS) : PS-01 / Neighbourhood Service Marketplace - Full-stack marketplace connecting customers with verified local providers in real time
+
+- Team Leader 
+
+        Name: Ayush Singh 
+        Phone: +91-6386844047
+
+- Team Members and Roles
+
+        Ayush Singh - Full Stack Developer  ( Backend Developer and Integration )
+        Daksh Chauhan - Full Stack Developer ( API Building & Testing )
+        Arya Dixit - UI/UX Desginer and Prototyping ( Figma / Canva )
+
+---
+### Project Description
+
+Problem: Finding trusted local service providers is still difficult in many neighborhoods. People often rely on unverified contacts, delayed responses, and scattered communication, while providers struggle to reach nearby customers and manage bookings efficiently.
+
+Solution: Neighbourhood Service Marketplace is a full-stack web platform that connects customers with local providers through a single, easy-to-use interface. Users can discover services by category and location, place bookings in real time, and track booking status. Providers get a dedicated dashboard to manage incoming requests, update service listings, and monitor earnings.
+
+Key Features:
+1. Smart service discovery with search, category/location filters, sorting, and pagination.
+2. Role-based booking system with secure authentication, booking status workflow, and provider-side management.
+3. Trust layer with post-completion reviews and dynamic service ratings.
+
+Tech Stack:
+- React 19,
+- Redux Toolkit
+- React Router
+- Tailwind CSS
+- Node.js
+- Express 5
+- MongoDB
+- Mongoose
+- JWT Authentication
+- Axios.
+
+Impact: The platform strengthens neighborhood-level service access by helping customers find reliable providers faster and giving local professionals a digital channel to grow their business. This improves convenience, transparency, and local economic participation.
+
+### Additional Links 
+
+- Presentation: [Link](https://drive.google.com/file/d/1EA8SbBExVrPtXRE7NsqsLHTsYJJVdtH0/view?usp=drivesdk)
+- GitHub: [Repository](https://github.com/DakshChauhan2005/Vibex_ayushsingh.git)
+- Frontend Deployed ( Full-Stack ) : [Link](https://vibex-ayushsingh.vercel.app/)
+- Backend Deployed : [Link](https://opencare-yw75.onrender.com)
+
+---
 # Home Services Marketplace
 
 Full-stack platform where users can discover local services, book providers, and leave reviews after completed bookings.
